@@ -1,0 +1,97 @@
+#basura espacial 
+
+# exskip Una barra de acero pesado y una esférica
+#los cojinetes de bolas, descartados por una nave espacial que pasa, flotan en cero
+#gravedad y el rodamiento de bolas está orbitando alrededor de la barra bajo el efecto de
+#su atracción gravitacional:
+
+\ begin { center }
+\ includegraphics [ancho = 7.5cm] {rod.eps}
+\ end { centro }
+
+#Para simplificar, supondremos que la barra tiene una sección transversal insignificante y
+#lo suficientemente pesado como para que no se mueva significativamente y que el rodamiento de bolas
+#está orbitando alrededor del punto medio de la barra en un plano perpendicular a la barra.
+
+\ begin { enumerate } \ setlength { \ itemsep } {0pt}
+
+# Tratar la barra como una línea de masa ~ $ M $ y longitud ~ $ L $ y la bola
+#teniendo como punto de masa ~ $ m $ , muestra que la fuerza de atracción ~ $ F $ sentida por
+#se da el rodamiento de bolas en la dirección hacia el centro de la barra por
+
+\ begin { displaymath }
+F = {GMm \ over L} \ sqrt {x ^ 2 + y ^ 2}
+    \ int _ {- L / 2} ^ {L / 2} { \ dd z \ over (x ^ 2 + y ^ 2 + z ^ 2) ^ {3/2}} \, ,
+\ end { displaymath }
+
+#donde $ G $ es la constante gravitacional de Newton y $ x $ y $ y $ son los
+#coordenadas del rodamiento de bolas en el plano perpendicular a la barra. los
+#integral se puede hacer en forma cerrada y da
+
+\ begin { displaymath }
+F = {GMm \ over \ sqrt {(x ^ 2 + y ^ 2) (x ^ 2 + y ^ 2 + L ^ 2/4 )}}.
+\ end { displaymath }
+
+#Por lo tanto, demuestre que las ecuaciones de movimiento para la posición $ x, y $ de la pelota
+#teniendo en el $ xy $ -plano son
+
+\ begin { displaymath }
+{ \ dd ^ 2 x \ over \ dd t ^ 2} = - GM {x \ over r ^ 2 \ sqrt {r ^ 2 + L ^ 2/4}}, \ qquad
+{ \ dd ^ 2 y \ over \ dd t ^ 2} = - GM {y \ over r ^ 2 \ sqrt {r ^ 2 + L ^ 2/4}},
+\ end { displaymath }
+donde $ r = \ sqrt {x ^ 2 + y ^ 2} $ .
+
+#Convierte estas dos ecuaciones de segundo orden en cuatro de primer orden
+#usando las técnicas de la Sección ~ 8.3. Luego, trabajando en unidades donde ~ $ G = 1 $ ,
+#escriba un programa para resolverlos por $ M = 10 $ , $ L = 2 $ y condiciones iniciales
+# $ (x, y) = ( 1 , 0 ) $ con velocidad de $ + 1 $ en $ y $ dirección . Calcula el
+#orbitar desde $ t = 0 $ a $ t = 10 $ y hacer una gráfica de la misma, lo que significa una gráfica de $ y $
+# contra ~ $ x $ . Debe encontrar que el rodamiento de bolas no orbita en un
+# círculo o elipse como lo hace un planeta, pero tiene una órbita de precesión, que
+# surge porque la fuerza de atracción no es un simple $ 1 / r ^ 2 $ como
+# es para un planeta en órbita alrededor del Sol.
+
+
+from scipy import array, arange, sqrt
+from pylab import plot, show, xlabel, ylabel
+
+
+G = 1
+M = 10
+L = 2
+vx_0 = 0.0
+vy_0 = 1.0
+t0 = 0.0
+tf = 10.0
+N = 5000
+x0 = 1
+y0 = 0.0
+
+h = (tf - t0) / N
+
+def f(r, t):
+    x = r[0]
+    vx = r[1]
+    y = r[2]
+    vy = r[3]
+    distancia = sqrt(x ** 2 + y ** 2)
+    return array([vx, -G * M * x / (distancia ** 2 * sqrt(distancia ** 2 + L ** 2 / 4)),
+                  vy, -G * M * y / (distancia ** 2 * sqrt(distancia ** 2 + L ** 2 / 4))], float)
+
+tpoints = arange(t0, tf, h)
+xpoints = []
+ypoints = []
+r = array([x0, vx_0, y0, vy_0], float)
+for t in tpoints:
+    xpoints.append(r[0])
+    ypoints.append(r[2])
+    k1 = h * f(r, t)
+    k2 = h * f(r + 0.5 * k1, t + 0.5 * h)
+    k3 = h * f(r + 0.5 * k2, t + 0.5 * h)
+    k4 = h * f(r + k3, t + h)
+    r += (k1 + 2 * k2 + 2 * k3 + k4) / 6
+
+plot(xpoints, ypoints)
+xlabel('x')
+ylabel('y')
+show()
