@@ -1,0 +1,105 @@
+#Trayectoria con resistencia al aire 
+
+#Muchos problemas de mecánica elemental se refieren a la física de los objetos.
+#moviéndose o volando por el aire, pero casi siempre ignoran la fricción
+#y resistencia al aire para hacer que las ecuaciones sean solucionables. Si estamos usando un
+#computadora, sin embargo, no necesitamos ecuaciones solucionables.
+
+#Considere, por ejemplo, un disparo esférico de bala de cañón desde un cañón de pie
+#en terreno llano. La resistencia del aire en una esfera en movimiento es una fuerza en el
+#dirección opuesta al movimiento con magnitud
+
+#F = 1/2*pi*R^2*rho*C*^2
+
+#dónde   R  es el radio de la esfera,  rho es la densidad del aire,  v  es el
+#velocidad, y  C  es el llamado  defn {coeficiente de arrastre} (a
+#propiedad de la forma del objeto en movimiento, en este caso una esfera).
+
+
+
+#A) partir de la segunda ley de Newton,  F = ma  , muestra que el
+#las ecuaciones de movimiento para la posición  (x, y)  de la bala de cañón son
+
+
+ddot {x} = - (pi*R^2*rho*C/2*m)*punto{x}*sqrt{dot{x}^2+dot{y}^2},
+ddot {y} = - g-{pi*R^2*rho*C/2*m}*punto {y}*sqrt {dot{x}^2+dot{y}^2}
+
+
+#donde  m  es la masa de la bala de cañón,  g  es la aceleración debida a
+#gravedad, y  dot{x}  y  ddot{x}  son la primera y segunda derivada
+#de x  con respecto al tiempo.
+#Cambia estas dos ecuaciones de segundo orden en cuatro de primer orden
+#ecuaciones usando los métodos que has aprendido, luego escribe un programa que
+#resuelve las ecuaciones para una bala de cañón de masa 1kg y radio 8cm,
+#disparó a 30grados a la horizontal con velocidad inicial
+
+  $ 100 \, \ mathrm {ms} ^ {- 1} $ .
+#La densidad del aire es \ rho = 1.22 \, \ textrm {kg} \, \ textrm {m} ^ {- 3} $ y el coeficiente de arrastre para
+# una esfera es $ C = 0.47 $ . Haz un diagrama de la trayectoria de la bala de cañón
+# (es decir, ~ una gráfica de $ y $ en función de x ).
+#Cuando uno ignora la resistencia del aire, la distancia recorrida por un
+# El proyectil no depende de la masa del proyectil. En la vida real,
+#sin embargo, la masa ciertamente hace la diferencia. Use su programa para
+# estimar la distancia total recorrida (sobre terreno horizontal) por el
+# bala de cañón arriba, y luego experimente con el programa para determinar
+# si la bala de cañón viaja más lejos si es más pesada o más ligera. usted
+#  podría, por ejemplo, trazar una serie de trayectorias para balas de cañón de
+#  diferentes masas, o podrías hacer un gráfico de la distancia recorrida como
+#  función de la masa. Describe brevemente lo que descubres.
+from scipy import array, arange, pi, sin, cos, sqrt
+from pylab import plot, show, xlabel, ylabel
+
+
+t0 = 0
+tf = 7
+N = 10000
+h = (tf - t0) / N
+
+g = 9.81
+m = 1  
+R = 0.08  
+theta0 = 30 * pi / 180 
+v0 = 100  
+rho = 1.22 
+C = 0.47  
+
+
+
+c = pi * R ** 2 * rho * C / 2
+def constante(m):
+    return c / m
+
+def f(r, t, m):
+    # x = r[0]
+    vx = r[1]
+    # y = r[2]
+    vy = r[3]
+    v = sqrt(vx ** 2 + vy ** 2)
+    return array([vx, - constante(m) * vx * v,
+                  vy, -g - constante(m) * vy * v], float)
+
+
+tpoints = arange(t0, tf, h)
+def trajectoria(m):
+    xpoints = []
+    ypoints = []
+    r = array([0, v0 * cos(theta0), 0, v0 * sin(theta0)], float)
+    for t in tpoints:
+        xpoints.append(r[0])
+        ypoints.append(r[2])
+        k1 = h * f(r, t, m)
+        k2 = h * f(r + 0.5 * k1, t + 0.5 * h, m)
+        k3 = h * f(r + 0.5 * k2, t + 0.5 * h, m)
+        k4 = h * f(r + k3, t + h, m)
+        r += (k1 + 2 * k2 + 2 * k3 + k4) / 6
+    return array(xpoints, float), array(ypoints, float)
+
+trajectoria1x, trajectoria1y = trajectoria(1)
+trajectoria2x, trajectoria2y = trajectoria(2)
+trajectoria3x, trajectoria3y = trajectoria(4)
+plot(trajectoria1x, trajectoria1y, 'b')
+plot(trajectoria2x, trajectoria2y, 'g')
+plot(trajectoria3x, trajectoria3y, 'k')
+xlabel('x (m)')
+ylabel('y (m)')
+show()
